@@ -12,9 +12,9 @@ const create_song = async (req, res) => {
     const song = new Song({ title, artist, album, genre });
     await song.save();
 
-    return res.status(201).json({ success: `Song Created` + song });
+    return res.status(201).json({ success: true, message: `Song Created` });
   } catch (e) {
-    res.status(500).send(e);
+    res.status(500).json({ success: false, message: e });
   }
 };
 
@@ -22,11 +22,12 @@ const get_song = async (req, res) => {
   try {
     const song = await Song.find();
 
-    if (!song) return res.status(204).json({ message: "No Song Found" });
+    if (!song)
+      return res.status(204).json({ success: true, message: "No Song Found" });
 
     return res.status(200).json(song);
   } catch (e) {
-    res.status(500).send(e);
+    res.status(500).json({ success: false, message: e });
   }
 };
 
@@ -34,11 +35,15 @@ const update_song = async (req, res) => {
   const { id } = req.params;
   const { title, artist, album, genre } = req.body;
 
-  if (!id) return res.status(400).json({ message: "Song Id Required" });
+  if (!id)
+    return res
+      .status(400)
+      .json({ success: false, message: "Song Id Required" });
 
   const songExist = await Song.findById({ _id: id });
 
-  if (!songExist) return res.status(204).json({ message: "No Song Found" });
+  if (!songExist)
+    return res.status(204).json({ success: true, message: "No Song Found" });
 
   try {
     const song = await Song.findByIdAndUpdate(
@@ -53,9 +58,9 @@ const update_song = async (req, res) => {
 
     song.save();
 
-    return res.status(201).json({ success: `Song is Updated` + song });
+    return res.status(201).json({ success: true, message: `Song is Updated` });
   } catch (e) {
-    res.status(500).send(e);
+    res.status(500).json({ success: false, message: e });
   }
 };
 
@@ -63,17 +68,21 @@ const remove_song = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!id) return res.status(400).json({ message: "Song Id Required" });
+    if (!id)
+      return res
+        .status(400)
+        .json({ success: false, message: "Song Id Required" });
 
     const songExist = await Song.findOne({ _id: id });
 
-    if (!songExist) return res.status(204).json({ message: "No Song Found" });
+    if (!songExist)
+      return res.status(204).json({ success: true, message: "No Song Found" });
 
     const song = await Song.findByIdAndDelete({ _id: id });
 
-    return res.status(201).json({ success: `Song is Deleted` + song });
+    return res.status(201).json({ success: true, message: `Song is Deleted` });
   } catch (e) {
-    res.status(500).send(e);
+    res.status(500).json({ success: false, message: e });
   }
 };
 
@@ -187,14 +196,17 @@ const generate_statistics = async (req, res) => {
     ]);
 
     return res.status(200).json({
-      noSongTotal,
-      noSongGenre,
-      noSongArtist,
-      noSongAndAlbumArtist,
-      noSongAlbum,
+      success: true,
+      data: {
+        noSongTotal,
+        noSongGenre,
+        noSongArtist,
+        noSongAndAlbumArtist,
+        noSongAlbum,
+      },
     });
   } catch (e) {
-    res.status(500).send(e);
+    res.status(500).json({ success: false, message: e });
   }
 };
 

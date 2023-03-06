@@ -11,6 +11,6 @@ const {
 
 songRouter.route("/").post(create_song).get(get_song);
 songRouter.route("/:id").put(update_song).delete(remove_song);
-songRouter.route("/statistics").get(generate_statistics);
+songRouter.route("/statics").get(generate_statistics);
 songRouter.route("/genre").get(genre);
 module.exports = songRouter;
