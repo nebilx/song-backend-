@@ -23,7 +23,7 @@ const get_song = async (req, res) => {
     const song = await Song.find();
 
     if (!song)
-      return res.status(204).json({ success: true, message: "No Song Found" });
+      return res.status(204).json({ success: false, message: "No Song Found" });
 
     return res.status(200).json(song);
   } catch (e) {
@@ -43,7 +43,7 @@ const update_song = async (req, res) => {
   const songExist = await Song.findById({ _id: id });
 
   if (!songExist)
-    return res.status(204).json({ success: true, message: "No Song Found" });
+    return res.status(204).json({ success: false, message: "No Song Found" });
 
   try {
     const song = await Song.findByIdAndUpdate(
@@ -76,9 +76,9 @@ const remove_song = async (req, res) => {
     const songExist = await Song.findOne({ _id: id });
 
     if (!songExist)
-      return res.status(204).json({ success: true, message: "No Song Found" });
+      return res.status(204).json({ success: false, message: "No Song Found" });
 
-    const song = await Song.findByIdAndDelete({ _id: id });
+    await Song.findByIdAndDelete({ _id: id });
 
     return res.status(201).json({ success: true, message: `Song is Deleted` });
   } catch (e) {
@@ -92,27 +92,35 @@ const generate_statistics = async (req, res) => {
       {
         $group: {
           _id: null,
-          title: {
-            $sum: 1,
+          noSong: {
+            $addToSet: "$title",
           },
-          artist: {
-            $sum: 1,
+          noAlbum: {
+            $addToSet: "$album",
           },
-          album: {
-            $sum: 1,
+          noArtist: {
+            $addToSet: "$artist",
           },
-          genre: {
-            $sum: 1,
+          noGenre: {
+            $addToSet: "$genre",
           },
         },
       },
       {
         $project: {
           _id: 0,
-          title: "$title",
-          artist: "$artist",
-          album: "$album",
-          genre: "$genre",
+          title: {
+            $size: "$noSong",
+          },
+          album: {
+            $size: "$noAlbum",
+          },
+          artist: {
+            $size: "$noArtist",
+          },
+          genre: {
+            $size: "$noGenre",
+          },
         },
       },
     ]);
@@ -121,8 +129,8 @@ const generate_statistics = async (req, res) => {
       {
         $group: {
           _id: "$genre",
-          total: {
-            $sum: 1,
+          noSong: {
+            $addToSet: "$title",
           },
         },
       },
@@ -130,7 +138,9 @@ const generate_statistics = async (req, res) => {
         $project: {
           _id: 0,
           genre: "$_id",
-          totalSongs: "$total",
+          song: {
+            $size: "$noSong",
+          },
         },
       },
     ]);
@@ -140,8 +150,8 @@ const generate_statistics = async (req, res) => {
       {
         $group: {
           _id: "$artist",
-          total: {
-            $sum: 1,
+          noSong: {
+            $addToSet: "$title",
           },
         },
       },
@@ -149,7 +159,9 @@ const generate_statistics = async (req, res) => {
         $project: {
           _id: 0,
           artist: "$_id",
-          totalSongs: "$total",
+          song: {
+            $size: "$noSong",
+          },
         },
       },
     ]);
@@ -158,12 +170,11 @@ const generate_statistics = async (req, res) => {
       {
         $group: {
           _id: "$artist",
-
-          title: {
-            $sum: 1,
+          noSong: {
+            $addToSet: "$title",
           },
-          album: {
-            $sum: 1,
+          noAlbum: {
+            $addToSet: "$album",
           },
         },
       },
@@ -171,8 +182,12 @@ const generate_statistics = async (req, res) => {
         $project: {
           _id: 0,
           artist: "$_id",
-          totalSongs: "$title",
-          totalAlbum: "$album",
+          song: {
+            $size: "$noSong",
+          },
+          album: {
+            $size: "$noAlbum",
+          },
         },
       },
     ]);
@@ -180,17 +195,17 @@ const generate_statistics = async (req, res) => {
     const noSongAlbum = await Song.aggregate([
       {
         $group: {
-          _id: "$genre",
-          total: {
-            $sum: 1,
+          _id: "$album",
+          noSong: {
+            $addToSet: "$title",
           },
         },
       },
       {
         $project: {
-          _id: 0,
-          genre: "$_id",
-          totalSongs: "$total",
+          song: {
+            $size: "$noSong",
+          },
         },
       },
     ]);
