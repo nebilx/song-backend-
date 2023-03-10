@@ -9,6 +9,13 @@ const create_song = async (req, res) => {
   try {
     const { title, artist, album, genre } = req.body;
 
+    const songExist = await Song.findOne({ title, artist, genre, album });
+
+    if (songExist)
+      return res
+        .status(400)
+        .json({ success: false, message: " Song Already Exist" });
+
     const song = new Song({ title, artist, album, genre });
     await song.save();
 
@@ -58,7 +65,9 @@ const update_song = async (req, res) => {
 
     song.save();
 
-    return res.status(201).json({ success: true, message: `Song is Updated` });
+    return res
+      .status(201)
+      .json({ success: true, message: `Song is Updated` + song });
   } catch (e) {
     res.status(500).json({ success: false, message: e });
   }
